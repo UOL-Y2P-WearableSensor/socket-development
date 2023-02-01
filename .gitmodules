@@ -1,0 +1,3 @@
+[submodule "fileForServer"]
+	path = fileForServer
+	url = git@github.com:UOL-Y2P-WearableSensor/browser-modeling.git
