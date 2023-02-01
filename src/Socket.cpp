@@ -65,9 +65,19 @@ namespace gomoku {
         std::string image_path="../fileForServer"+file_path;
         INFO("ready to send \"{}\"", image_path);
 
-        char head[]="HTTP/1.1 200 Ok\r\n\r\n";
+        std::string head="HTTP/1.1 200 Ok\r\n", mime_type="Content-Type: ";
 
-        if(write(this->file_descriptor, head, strlen(head)) == FAIL){
+        if (file_path.substr( file_path.length()-3, 3)==".js"){
+            mime_type+="text/javascript";
+        }else if (file_path.substr( file_path.length()-5, 5)==".html"){
+            mime_type+="text/html";
+        }else if (file_path.substr( file_path.length()-5, 5)==".json"){
+            mime_type+="application/json";
+        }
+
+        head+=mime_type+"\r\n\r\n";
+
+        if(write(this->file_descriptor, head.c_str(), head.size()) == FAIL){
             perror("write dead");
             return;
         }
