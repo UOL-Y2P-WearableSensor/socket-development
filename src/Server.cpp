@@ -129,50 +129,25 @@ namespace gomoku {
 
 
 
-            switch (hash(findTextNo(0).c_str(),basis)) {
-                case hash("GET", basis):
-                    INFO("GET method detected");
-                    break;
-                case hash("POST", basis):
-                    INFO("POST method detected");
-                    break;
-            }
 
-//            if(request_method="GET") {
-//                if (!fork()) {
-//                    close(main_socket_fd);
-//                    switch (request_path(read_bytes_quantity)) {
-//                        case JPG:
-//                            send(JPGPATH, JPG_Head);
-//                            break;
-//                        case HTML:
-//                            send(HTMLPATH, HTML_Head);
-//                            break;
-//                        case ICO:
-//                            send(ICOPATH, ICO_Head);
-//                            break;
-//                        case CSS:
-//                            send(CSSPATH, CSS_Head);
-//                            break;
-//                        case JS:
-//                            send(JSPATH, JS_Head);
-//                            break;
-//                        case CHAT:
-//                            send(CHATPATH, UPgrade_Head);
-//                            break;
-//                        default:
-//                    }
-//                    close(additional_socket_fd);
-//                    exit(0);
-//                }
-//            }
-                
+
 
             //send response to client's request...
             if (!fork()) { // this is the child process
                 this->recv_socket.closeFD(); // child doesn't need the listener
-                this->client_socket.sendFile(findTextNo(1));
-                this->client_socket.closeFD();
+
+                switch (hash(findTextNo(0).c_str(),basis)) {
+                    case hash("GET", basis):
+                        INFO("GET method detected");
+                        this->client_socket.sendFile(findTextNo(1));
+                        break;
+                    case hash("POST", basis):
+                        INFO("POST method detected");
+                        break;
+                }
+
+                    this->client_socket.closeFD();
+
                 exit(0);    //kill child process
             }
 
