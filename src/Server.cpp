@@ -50,7 +50,7 @@ namespace gomoku {
         if ((rv = getaddrinfo(NULL, port.c_str(), &hints, &local_address)) != 0) {
             fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         }
-        INFO("本地游戏已在端口 {} 开启\n", port);
+        INFO("server is running at port {}\n", port);
 
         //create file descriptor for server socket
         this->recv_socket.setAddress(local_address->ai_family,
@@ -99,7 +99,6 @@ namespace gomoku {
                                                    &sin_size));
 
             //read response from client
-
             client_socket.readResponse(buffer, BUFFER_SIZE);
 
             INFO("request from  ({} bytes):\n{}",  client_socket.read_bytes_quantity, buffer);
@@ -144,6 +143,12 @@ namespace gomoku {
                     case hash("POST", basis):
                         INFO("POST method detected");
                         break;
+                    case hash("PUT", basis):
+                        INFO("PUT method detected");
+                        break;
+                    case hash("PATCH", basis):
+                        INFO("PATCH method detected");
+                        break;
                 }
 
                     this->client_socket.closeFD();
@@ -153,6 +158,10 @@ namespace gomoku {
 
             this->client_socket.closeFD();  // parent doesn't need this
         }
+
+
+
+
     }
 
 } // Server
