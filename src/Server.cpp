@@ -140,13 +140,10 @@ namespace gomoku {
                         INFO("GET method detected");
                         this->client_socket.sendFile(findTextNo(1));
                         break;
-                    case hash("POST", basis):
-                        INFO("POST method detected");
-                        break;
-                    case hash("PUT", basis):
+                    case hash("PUT", basis):    //should from arduino, replace one IMU_data.json
                         INFO("PUT method detected");
                         break;
-                    case hash("PATCH", basis):
+                    case hash("PATCH", basis):  //may from arduino
                         INFO("PATCH method detected");
                         break;
                 }
