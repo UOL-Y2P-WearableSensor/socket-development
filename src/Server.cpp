@@ -142,6 +142,10 @@ namespace gomoku {
                         break;
                     case hash("PUT", basis):    //should from arduino, replace one IMU_data.json
                         INFO("PUT method detected");
+                        //read "PUT" response, and then save it as IMU_schedule.json in the folder './fileForServer'
+                        //write data into './fileForServer'
+                        //need a key
+                        this->client_socket.writeFile(findTextNo(1));
                         break;
                     case hash("PATCH", basis):  //may from arduino
                         INFO("PATCH method detected");

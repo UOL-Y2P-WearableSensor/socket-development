@@ -58,6 +58,13 @@ namespace gomoku {
         return read_bytes_quantity;
     }
 
+    void ClientSocket::writeFile(std::string key){
+        if (key!="123123") return;
+        return;
+
+
+    }
+
     void ClientSocket::sendFile(std::string file_path) {
         if (file_path=="/"){        //todo: string equaling may fall
             file_path="/index.html";
