@@ -1,5 +1,9 @@
 # WearableSensor_Macos
-run on Macos (socket instructed by https://beej.us/guide/bgnet/html/split/)
+run on MacOs only
+![image](/fileForSketching/sketch_map.png)
+The main program of my UOL Year-2-Project, which links the data from sensors and the browsers for displaying.
+websocket frame based on https://github.com/javapretty/websocket.git
+socket instructed by https://beej.us/guide/bgnet/html/split/
 
 
 INSTRUCTION:
