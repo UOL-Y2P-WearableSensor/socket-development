@@ -1,5 +1,5 @@
 # WearableSensor_Macos
-run on Macos
+run on Macos (socket instructed by https://beej.us/guide/bgnet/html/split/)
 
 
 INSTRUCTION:
