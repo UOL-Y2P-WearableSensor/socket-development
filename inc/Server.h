@@ -12,7 +12,7 @@
 #include <netdb.h>
 #include "Logging.h"
 #include "../inc/Socket.h"
-#define BACKLOG 10     // how many pending connections queue will hold
+#define BACKLOG 120    // how many pending connections queue will hold
 namespace gomoku {
 
     class Server {

@@ -88,8 +88,8 @@ namespace gomoku {
             perror("sigaction");
             exit(1);
         }
-        char* buffer = new char[BUFFER_SIZE];
 
+        char buffer[BUFFER_SIZE];
         // main accept() loop
         while(true) {
             //create client socket
@@ -99,6 +99,7 @@ namespace gomoku {
                                                    &sin_size));
 
             //read response from client
+            memset(buffer, 0, sizeof buffer /sizeof (char));
             client_socket.readResponse(buffer, BUFFER_SIZE);
 
             INFO("request from  ({} bytes):\n{}",  client_socket.read_bytes_quantity, buffer);
@@ -126,11 +127,6 @@ namespace gomoku {
 
             INFO("Request: {} {}", findTextNo(0), findTextNo(1));
 
-
-
-
-
-
             //send response to client's request...
             if (!fork()) { // this is the child process
                 this->recv_socket.closeFD(); // child doesn't need the listener
@@ -141,7 +137,7 @@ namespace gomoku {
                         this->client_socket.sendFile(findTextNo(1));
                         break;
                     case hash("PUT", basis):    //should from arduino, replace one IMU_data.json
-                        INFO("PUT method detected");
+                        INFO("PUT method detected\n\n\n\n");
                         //read "PUT" response, and then save it as IMU_schedule.json in the folder './fileForServer'
                         //write data into './fileForServer'
                         //need a key
