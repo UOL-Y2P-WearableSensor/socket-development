@@ -1,7 +1,7 @@
 #include <iostream>
-#include "inc/Server.h"
-#include "inc/Logging.h"
-#include "inc/Socket.h"
+#include "Server.h"
+#include "Logging.h"
+#include "Socket.h"
 
 
 auto main() -> int{

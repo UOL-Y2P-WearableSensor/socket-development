@@ -2,7 +2,7 @@
 // Created by 沈逸潇 on 22/12/2022.
 //
 
-#include "../inc/Server.h"
+#include "Server.h"
 
 
 #include <unistd.h>
@@ -53,16 +53,16 @@ namespace gomoku {
         INFO("server is running at port {}\n", port);
 
         //create file descriptor for server socket
-        this->recv_socket.setAddress(local_address->ai_family,
-                                     local_address->ai_socktype,
-                                     local_address->ai_protocol);
+        this->listening_socket.setAddress(local_address->ai_family,
+                                          local_address->ai_socktype,
+                                          local_address->ai_protocol);
 
         //set socket option
-        this->recv_socket.setOpt(SOL_SOCKET, SO_REUSEADDR);
+        this->listening_socket.setOpt(SOL_SOCKET, SO_REUSEADDR);
 
         //bind internal port&local
-        this->recv_socket.startBind(local_address->ai_addr,
-                                    local_address->ai_addrlen);
+        this->listening_socket.startBind(local_address->ai_addr,
+                                         local_address->ai_addrlen);
 
         // all done with this structure, after "getaddrinfo()"
         freeaddrinfo(local_address);
@@ -78,7 +78,7 @@ namespace gomoku {
         char s[INET6_ADDRSTRLEN];
 
         //begin listening
-        this->recv_socket.startListen(BACKLOG);
+        this->listening_socket.startListen(BACKLOG);
 
         // reap all dead processes
         sa.sa_handler = sigchld_handler;
@@ -92,16 +92,16 @@ namespace gomoku {
         char buffer[BUFFER_SIZE];
         // main accept() loop
         while(true) {
-            //create client socket
+            //create client socket from the first listening_socket in the connected list(the ones have been connected, with 3-time-handshake)
+            //then it will be removed from the connected list
             sin_size = sizeof connector_addr;
-            client_socket.setFileDescriptor(accept(recv_socket.getFileDescriptor(),
+            client_socket.setFileDescriptor(accept(listening_socket.getFileDescriptor(),
                                                    (struct sockaddr *) &connector_addr,
                                                    &sin_size));
 
             //read response from client
             memset(buffer, 0, sizeof buffer /sizeof (char));
             client_socket.readResponse(buffer, BUFFER_SIZE);
-
             INFO("request from  ({} bytes):\n{}",  client_socket.read_bytes_quantity, buffer);
 
 /**
@@ -129,26 +129,26 @@ namespace gomoku {
 
             //send response to client's request...
             if (!fork()) { // this is the child process
-                this->recv_socket.closeFD(); // child doesn't need the listener
+                this->listening_socket.closeFD(); // child doesn't need the listener
 
                 switch (hash(findTextNo(0).c_str(),basis)) {
                     case hash("GET", basis):
                         INFO("GET method detected");
                         this->client_socket.sendFile(findTextNo(1));
+                        this->client_socket.closeFD();
                         break;
-                    case hash("PUT", basis):    //should from arduino, replace one IMU_data.json
-                        INFO("PUT method detected\n\n\n\n");
+                    case hash("PUT-RpLE44NHZx7WUwuUJFQY", basis):    //should from arduino, replace one IMU_data.json
+                        INFO("PUT method detected\n\n");
                         //read "PUT" response, and then save it as IMU_schedule.json in the folder './fileForServer'
                         //write data into './fileForServer'
                         //need a key
+
                         this->client_socket.writeFile(findTextNo(1));
                         break;
                     case hash("PATCH", basis):  //may from arduino
                         INFO("PATCH method detected");
                         break;
                 }
-
-                    this->client_socket.closeFD();
 
                 exit(0);    //kill child process
             }

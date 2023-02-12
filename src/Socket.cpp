@@ -4,7 +4,7 @@
 
 #include <unistd.h>
 #include <sys/stat.h>
-#include "../inc/Socket.h"
+#include "Socket.h"
 
 namespace gomoku {
 

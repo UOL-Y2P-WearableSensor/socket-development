@@ -11,7 +11,7 @@
 #include <iostream>
 #include <netdb.h>
 #include "Logging.h"
-#include "../inc/Socket.h"
+#include "Socket.h"
 #define BACKLOG 120    // how many pending connections queue will hold
 namespace gomoku {
 
@@ -20,7 +20,7 @@ namespace gomoku {
         explicit Server(const std::string& port);
         void start();
     private:
-        gomoku::RecvSocket recv_socket;
+        gomoku::RecvSocket listening_socket;
         gomoku::ClientSocket client_socket;
     };
 

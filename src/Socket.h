@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 #include <sys/fcntl.h>
 #include <netdb.h>
-#include "../inc/Logging.h"
+#include "Logging.h"
 #define FAIL (-1)
 namespace gomoku {
 
