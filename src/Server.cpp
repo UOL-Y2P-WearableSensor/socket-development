@@ -17,7 +17,7 @@ enum {
     BUFFER_SIZE = 10000
 };
 
-namespace gomoku {
+namespace WearableSensor {
 
     void sigchld_handler(int s)
     {
@@ -102,7 +102,7 @@ namespace gomoku {
             //read response from client
             memset(buffer, 0, sizeof buffer /sizeof (char));
             client_socket.readResponse(buffer, BUFFER_SIZE);
-            INFO("request from  ({} bytes):\n{}",  client_socket.read_bytes_quantity, buffer);
+            INFO("request from nowhere ({} bytes): {}",  client_socket.read_bytes_quantity, buffer);
 
 /**
  *  char buffer=
@@ -125,7 +125,7 @@ namespace gomoku {
                 return std::string( ptr_left, --ptr_right);
             };
 
-            INFO("Request: {} {}", findTextNo(0), findTextNo(1));
+
 
             //send response to client's request...
             if (!fork()) { // this is the child process
@@ -133,17 +133,17 @@ namespace gomoku {
 
                 switch (hash(findTextNo(0).c_str(),basis)) {
                     case hash("GET", basis):
-                        INFO("GET method detected");
+                        INFO("GET method detected: {}", findTextNo(1));
                         this->client_socket.sendFile(findTextNo(1));
                         this->client_socket.closeFD();
                         break;
-                    case hash("PUT-RpLE44NHZx7WUwuUJFQY", basis):    //should from arduino, replace one IMU_data.json
-                        INFO("PUT method detected\n\n");
+                    case hash("Authentication-RpLE44NHZx7WUwuUJFQY", basis):    //should from arduino, replace one IMU_data.json
                         //read "PUT" response, and then save it as IMU_schedule.json in the folder './fileForServer'
                         //write data into './fileForServer'
                         //need a key
-
-                        this->client_socket.writeFile(findTextNo(1));
+                        INFO("Arduino authenticated & run the loop in the child process");
+                        this->arduino_socket.setFileDescriptor(this->client_socket.getFileDescriptor());
+                        this->arduino_socket.loop();
                         break;
                     case hash("PATCH", basis):  //may from arduino
                         INFO("PATCH method detected");

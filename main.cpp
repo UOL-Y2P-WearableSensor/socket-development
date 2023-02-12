@@ -6,7 +6,7 @@
 
 auto main() -> int{
 
-    gomoku::Server server("3490");
+    WearableSensor::Server server("3490");
     server.start();
 
 

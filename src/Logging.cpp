@@ -4,5 +4,5 @@
 
 #include "Logging.h"
 
-namespace gomoku {
+namespace WearableSensor {
 } // gomoku

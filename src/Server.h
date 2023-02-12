@@ -13,15 +13,17 @@
 #include "Logging.h"
 #include "Socket.h"
 #define BACKLOG 120    // how many pending connections queue will hold
-namespace gomoku {
+namespace WearableSensor {
 
     class Server {
     public:
         explicit Server(const std::string& port);
         void start();
     private:
-        gomoku::RecvSocket listening_socket;
-        gomoku::ClientSocket client_socket;
+
+        WearableSensor::RecvSocket listening_socket;
+        WearableSensor::ClientSocket client_socket;
+        WearableSensor::ArduinoSocket arduino_socket;
     };
 
 } // Server

@@ -6,7 +6,7 @@
 #define SIMPLEGOMOKU_LOGGING_H
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
-namespace gomoku {
+namespace WearableSensor {
 
     class Logging {
     public:
