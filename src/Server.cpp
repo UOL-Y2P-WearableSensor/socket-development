@@ -3,6 +3,7 @@
 //
 
 #include "Server.h"
+#include "IMU_json.h"
 
 
 #include <unistd.h>
@@ -12,6 +13,7 @@
 #include <csignal>
 #include <utility>
 #include <sys/wait.h>
+#include <fstream>
 
 enum {
     BUFFER_SIZE = 10000
@@ -19,14 +21,13 @@ enum {
 
 namespace WearableSensor {
 
-    void sigchld_handler(int s)
-    {
-        (void)s; // quiet unused variable warning
+    void sigchld_handler(int s) {
+        (void) s; // quiet unused variable warning
 
         // waitpid() might overwrite errno, so we save and restore it:
         int saved_errno = errno;
 
-        while(waitpid(-1, NULL, WNOHANG) > 0);
+        while (waitpid(-1, NULL, WNOHANG) > 0);
 
         errno = saved_errno;
     }
@@ -37,7 +38,7 @@ namespace WearableSensor {
 
 
 
-    Server::Server(const std::string& port) {
+    Server::Server(const std::string &port) {
         struct addrinfo hints, *local_address;
 
         memset(&hints, 0, sizeof hints);
@@ -69,8 +70,6 @@ namespace WearableSensor {
     }
 
 
-
-
     void Server::start() {
         struct sockaddr_storage connector_addr;
         socklen_t sin_size;
@@ -91,7 +90,7 @@ namespace WearableSensor {
 
         char buffer[BUFFER_SIZE];
         // main accept() loop
-        while(true) {
+        while (true) {
             //create client socket from the first listening_socket in the connected list(the ones have been connected, with 3-time-handshake)
             //then it will be removed from the connected list
             sin_size = sizeof connector_addr;
@@ -100,9 +99,9 @@ namespace WearableSensor {
                                                    &sin_size));
 
             //read response from client
-            memset(buffer, 0, sizeof buffer /sizeof (char));
+            memset(buffer, 0, sizeof buffer / sizeof(char));
             client_socket.readResponse(buffer, BUFFER_SIZE);
-            INFO("request from nowhere ({} bytes): {}",  client_socket.read_bytes_quantity, buffer);
+            INFO("request from nowhere ({} bytes): {}", client_socket.read_bytes_quantity, buffer);
 
 /**
  *  char buffer=
@@ -112,32 +111,37 @@ namespace WearableSensor {
  *      std::string file_path=findTextNo(2);
  */
 
-            auto findTextNo=[buffer](int num){
-                const char *ptr_right=buffer;
+            auto findTextNo = [buffer](int num) {
+                const char *ptr_right = buffer;
                 const char *ptr_left;
-                for (int i = 0; i <= num;++i) {
-                    if (i==num){
-                        ptr_left=ptr_right;
+                for (int i = 0; i <= num; ++i) {
+                    if (i == num) {
+                        ptr_left = ptr_right;
                     }
-                    ptr_right = strchr(ptr_right,' ');
+                    ptr_right = strchr(ptr_right, ' ');
                     ++ptr_right;
                 }
-                return std::string( ptr_left, --ptr_right);
+                return std::string(ptr_left, --ptr_right);
             };
-
-
 
             //send response to client's request...
             if (!fork()) { // this is the child process
                 this->listening_socket.closeFD(); // child doesn't need the listener
 
-                switch (hash(findTextNo(0).c_str(),basis)) {
+                switch (hash(findTextNo(0).c_str(), basis)) {
                     case hash("GET", basis):
                         INFO("GET method detected: {}", findTextNo(1));
-                        this->client_socket.sendFile(findTextNo(1));
+                        if (!findTextNo(1).compare("/IMU_data.json")) {
+                            std::string r = send_IMU_data();
+                            write(this->client_socket.getFileDescriptor(),
+                                   r.c_str(), r.size() );
+                        } else {
+                            this->client_socket.sendFile(findTextNo(1));
+                        }
                         this->client_socket.closeFD();
                         break;
-                    case hash("Authentication-RpLE44NHZx7WUwuUJFQY", basis):    //should from arduino, replace one IMU_data.json
+                    case hash("Authentication-RpLE44NHZx7WUwuUJFQY",
+                              basis):    //should from arduino, replace one IMU_data.json
                         //read "PUT" response, and then save it as IMU_schedule.json in the folder './fileForServer'
                         //write data into './fileForServer'
                         //need a key
@@ -157,9 +161,8 @@ namespace WearableSensor {
         }
 
 
-
-
     }
+
 
 } // Server
 

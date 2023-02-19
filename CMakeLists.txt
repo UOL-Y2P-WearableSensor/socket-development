@@ -15,7 +15,7 @@ include_directories(src)
 aux_source_directory(src SRC_LIST)
 aux_source_directory(. SRC_LIST)
 
-add_executable(WearableSensor_Macos ${SRC_LIST})
+add_executable(WearableSensor_Macos ${SRC_LIST} src/IMU_json.cpp src/IMU_json.h src/IMU_json.h)
 
 
 target_link_libraries(WearableSensor_Macos PUBLIC spdlog)

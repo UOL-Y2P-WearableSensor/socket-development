@@ -20,7 +20,6 @@ namespace WearableSensor {
         explicit Server(const std::string& port);
         void start();
     private:
-
         WearableSensor::RecvSocket listening_socket;
         WearableSensor::ClientSocket client_socket;
         WearableSensor::ArduinoSocket arduino_socket;

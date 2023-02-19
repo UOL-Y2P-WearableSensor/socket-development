@@ -4,6 +4,7 @@
 
 #include <unistd.h>
 #include <sys/stat.h>
+#include <fstream>
 #include "Socket.h"
 
 namespace WearableSensor {
@@ -45,6 +46,18 @@ namespace WearableSensor {
         this->setFileDescriptor(socket(ai_family, ai_socktype, ai_protocol));
     }
 
+    void ArduinoSocket::recvResponse(char *buffer, size_t nbyte) {
+        int tmp;
+        if ((tmp = recv(this->file_descriptor, buffer, nbyte, MSG_WAITALL)) == -1) {
+            perror("Arduino recv done");
+            return;
+        }
+        this->read_bytes_quantity = tmp;
+
+
+    }
+
+
     void ClientSocket::readResponse(char *buf, size_t nbyte) {
         int tmp;
         if ((tmp = read(this->file_descriptor, buf, nbyte)) == -1) {
@@ -59,10 +72,10 @@ namespace WearableSensor {
     }
 
     void ArduinoSocket::send_ping_pong() {
-        const char ping_msg[20]="keep alive, yixiao\n";
-        if(send(this->file_descriptor, ping_msg, sizeof ping_msg/sizeof (char), MSG_OOB) == -1){
+        const char ping_msg[20] = "keep alive, yixiao\n";
+        if (send(this->file_descriptor, ping_msg, sizeof ping_msg / sizeof(char), MSG_OOB) == -1) {
             perror("arduino sending ping-pong msg");
-        }else{
+        } else {
             INFO("sent ping-pong msg to Arduino");
         }
     }
@@ -113,16 +126,44 @@ namespace WearableSensor {
         close(img_fd);
     }
 
+
     void ArduinoSocket::loop() {
         INFO("ArduinoSocket FD is {}", this->getFileDescriptor());
         char buffer[1024];
-        while (true){
-            INFO("this is the start of the loop");
-            memset(buffer, 0, sizeof buffer /sizeof (char));
-            this->readResponse(buffer, 1024);
-            INFO("data from Arduino ({} bytes):\n{}", this->read_bytes_quantity, buffer);
-//            INFO("data from Arduino ({} bytes)", this->read_bytes_quantity);
+
+        std::string image_path = "../fileForServer/IMU_data.txt";
+        while (true) {
+            INFO("ArduinoSocket::reading...");
+            memset(buffer, 0, sizeof buffer / sizeof(char));
+
+            this->recvResponse(buffer, 1024);
+//            this->readResponse(buffer, 1024);
+
+            int img_fd;
+            if ((img_fd = open(image_path.c_str(), O_WRONLY | O_APPEND)) == -1) {
+                perror("file not found");
+                return;
+            }
+
+            if (write(img_fd, buffer, this->read_bytes_quantity) != this->read_bytes_quantity) {
+                perror("something wrong in the Arduino Writing");
+                exit(1);
+            }
+            close(img_fd);
+            if (this->read_bytes_quantity > 0) {
+//                INFO("\t\tdata from Arduino ({} bytes):\n{}", this->read_bytes_quantity, buffer);
+            } else {
+                break;
+            }
+
         }
+        INFO("receiving failed, ArduinoSocket's loop out & kill the child process & close the FD");
+        this->closeFD();
+        exit(0);
+    }
+
+    long long int ArduinoSocket::getCurrentTimeIdx() const {
+        return current_time_idx;
     }
 
 } // gomoku
