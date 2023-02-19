@@ -4,7 +4,6 @@
 
 #ifndef WEARABLESENSOR_MACOS_IMU_JSON_H
 #define WEARABLESENSOR_MACOS_IMU_JSON_H
-
 #include <string>
 #include <vector>
 #include <iostream>

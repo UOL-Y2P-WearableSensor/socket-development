@@ -86,9 +86,9 @@ std::string send_IMU_data() {
             }
         }
         fs.close();
-        std::string response="HTTP/1.1 200 Ok\r\nContent-Type: application/json\r\n";
-        response+=IMU_data.toString();
+        std::string response="HTTP/1.1 200 Ok\r\nContent-Type: application/json";
         response+="\r\n\r\n";
+        response+=IMU_data.toString();
         std::cout<<response<<std::endl;
         return response;
     }
