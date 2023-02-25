@@ -5,7 +5,7 @@
 #include "IMU_json.h"
 
 std::string Euler_angle_t::toString() const {
-    return "{\"y\":" + data[0] + ",\"r\":" + data[1] + ",\"p\":" + data[2] + "}";
+    return "{\"r\":" + data[0] + ",\"p\":" + data[1] + "}";
 }
 
 std::string IMU_Data_t::toString() const {
@@ -55,7 +55,7 @@ std::string send_IMU_data() {
         char ch;
         int num = 0;
         while (true) {
-            if (num >= FRAME2BROWSER) break;
+            if (num >= FRAME2BROWSER+1) break;
             fs.get(ch);
             if (ch == '\n') num++;
             fs.seekg(-2,
@@ -67,19 +67,19 @@ std::string send_IMU_data() {
         IMU_Data_t IMU_data;
         Euler_angle_t Euler_angle;
         int split_idx;
-        for (int pose = 0; pose < FRAME2BROWSER - 1; ++pose) {
+        for (int pose = 0; pose < FRAME2BROWSER ; ++pose) {
 
             // Read the current line
             getline(fs, tmp);
             std::vector<std::string> v = split(tmp, " ");
 
             //except the time_idx "[19]"
-            split_idx = 1;
+            split_idx = 0;
 
             //store in the IMU_data struct
             for (int IMU_idx = 0; IMU_idx < IMU_NUM; ++IMU_idx) {
                 if (split_idx > v.size() - 1) break;
-                for (int angle_idx = 0; angle_idx < 3; ++angle_idx) {
+                for (int angle_idx = 0; angle_idx < (sizeof Euler_angle.data/ sizeof (std::string)); ++angle_idx) {
                     Euler_angle.data[angle_idx] = v.at(split_idx++);
                 }
                 IMU_data.data[IMU_idx].push_back(Euler_angle);

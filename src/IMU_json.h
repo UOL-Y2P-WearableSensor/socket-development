@@ -8,11 +8,12 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#define FRAME2BROWSER 6
+#define FRAME2BROWSER 1
 #define IMU_NUM 5
-const std::string name[5]={"L_F","R_F","L_T", "R_T", "OnBrd"};
+const std::string name[IMU_NUM]={"L_F","R_F","L_T", "R_T", "OnBrd"};
 struct Euler_angle_t {
-    std::string data[3];
+    std::string data[2];
+//    std::string data[3];
     std::string toString() const;
 };
 

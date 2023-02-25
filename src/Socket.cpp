@@ -129,15 +129,15 @@ namespace WearableSensor {
 
     void ArduinoSocket::loop() {
         INFO("ArduinoSocket FD is {}", this->getFileDescriptor());
-        char buffer[1024];
+        char buffer[512];
 
         std::string image_path = "../fileForServer/IMU_data.txt";
         while (true) {
-            INFO("ArduinoSocket::reading...");
+//            INFO("ArduinoSocket::reading...");
             memset(buffer, 0, sizeof buffer / sizeof(char));
 
-            this->recvResponse(buffer, 1024);
-//            this->readResponse(buffer, 1024);
+//            this->recvResponse(buffer, 512);
+            this->readResponse(buffer, 512);
 
             int img_fd;
             if ((img_fd = open(image_path.c_str(), O_WRONLY | O_APPEND)) == -1) {
