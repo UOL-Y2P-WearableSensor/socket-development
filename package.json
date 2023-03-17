@@ -1,7 +1,0 @@
-{
-  "name": "WearableSensor_Macos",
-  "version": "1.0.0",
-  "dependencies": {
-    "three": "^0.150.0"
-  }
-}
