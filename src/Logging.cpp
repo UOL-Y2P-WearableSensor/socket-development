@@ -2,7 +2,7 @@
 // Created by 沈逸潇 on 24/12/2022.
 //
 
-#include "../inc/Logging.h"
+#include "Logging.h"
 
-namespace gomoku {
+namespace WearableSensor {
 } // gomoku

@@ -2,7 +2,8 @@
 // Created by 沈逸潇 on 22/12/2022.
 //
 
-#include "../inc/Server.h"
+#include "Server.h"
+#include "IMU_json.h"
 
 
 #include <unistd.h>
@@ -12,21 +13,21 @@
 #include <csignal>
 #include <utility>
 #include <sys/wait.h>
+#include <fstream>
 
 enum {
     BUFFER_SIZE = 10000
 };
 
-namespace gomoku {
+namespace WearableSensor {
 
-    void sigchld_handler(int s)
-    {
-        (void)s; // quiet unused variable warning
+    void sigchld_handler(int s) {
+        (void) s; // quiet unused variable warning
 
         // waitpid() might overwrite errno, so we save and restore it:
         int saved_errno = errno;
 
-        while(waitpid(-1, NULL, WNOHANG) > 0);
+        while (waitpid(-1, NULL, WNOHANG) > 0);
 
         errno = saved_errno;
     }
@@ -37,7 +38,7 @@ namespace gomoku {
 
 
 
-    Server::Server(const std::string& port) {
+    Server::Server(const std::string &port) {
         struct addrinfo hints, *local_address;
 
         memset(&hints, 0, sizeof hints);
@@ -53,22 +54,20 @@ namespace gomoku {
         INFO("server is running at port {}\n", port);
 
         //create file descriptor for server socket
-        this->recv_socket.setAddress(local_address->ai_family,
-                                     local_address->ai_socktype,
-                                     local_address->ai_protocol);
+        this->listening_socket.setAddress(local_address->ai_family,
+                                          local_address->ai_socktype,
+                                          local_address->ai_protocol);
 
         //set socket option
-        this->recv_socket.setOpt(SOL_SOCKET, SO_REUSEADDR);
+        this->listening_socket.setOpt(SOL_SOCKET, SO_REUSEADDR);
 
         //bind internal port&local
-        this->recv_socket.startBind(local_address->ai_addr,
-                                    local_address->ai_addrlen);
+        this->listening_socket.startBind(local_address->ai_addr,
+                                         local_address->ai_addrlen);
 
         // all done with this structure, after "getaddrinfo()"
         freeaddrinfo(local_address);
     }
-
-
 
 
     void Server::start() {
@@ -78,7 +77,7 @@ namespace gomoku {
         char s[INET6_ADDRSTRLEN];
 
         //begin listening
-        this->recv_socket.startListen(BACKLOG);
+        this->listening_socket.startListen(BACKLOG);
 
         // reap all dead processes
         sa.sa_handler = sigchld_handler;
@@ -88,20 +87,21 @@ namespace gomoku {
             perror("sigaction");
             exit(1);
         }
-        char* buffer = new char[BUFFER_SIZE];
 
+        char buffer[BUFFER_SIZE];
         // main accept() loop
-        while(true) {
-            //create client socket
+        while (true) {
+            //create client socket from the first listening_socket in the connected list(the ones have been connected, with 3-time-handshake)
+            //then it will be removed from the connected list
             sin_size = sizeof connector_addr;
-            client_socket.setFileDescriptor(accept(recv_socket.getFileDescriptor(),
+            client_socket.setFileDescriptor(accept(listening_socket.getFileDescriptor(),
                                                    (struct sockaddr *) &connector_addr,
                                                    &sin_size));
 
             //read response from client
+            memset(buffer, 0, sizeof buffer / sizeof(char));
             client_socket.readResponse(buffer, BUFFER_SIZE);
-
-            INFO("request from  ({} bytes):\n{}",  client_socket.read_bytes_quantity, buffer);
+            INFO("request from nowhere ({} bytes): {}", client_socket.read_bytes_quantity, buffer);
 
 /**
  *  char buffer=
@@ -111,48 +111,48 @@ namespace gomoku {
  *      std::string file_path=findTextNo(2);
  */
 
-            auto findTextNo=[buffer](int num){
-                const char *ptr_right=buffer;
+            auto findTextNo = [buffer](int num) {
+                const char *ptr_right = buffer;
                 const char *ptr_left;
-                for (int i = 0; i <= num;++i) {
-                    if (i==num){
-                        ptr_left=ptr_right;
+                for (int i = 0; i <= num; ++i) {
+                    if (i == num) {
+                        ptr_left = ptr_right;
                     }
-                    ptr_right = strchr(ptr_right,' ');
+                    ptr_right = strchr(ptr_right, ' ');
                     ++ptr_right;
                 }
-                return std::string( ptr_left, --ptr_right);
+                return std::string(ptr_left, --ptr_right);
             };
-
-            INFO("Request: {} {}", findTextNo(0), findTextNo(1));
-
-
-
-
-
 
             //send response to client's request...
             if (!fork()) { // this is the child process
-                this->recv_socket.closeFD(); // child doesn't need the listener
+                this->listening_socket.closeFD(); // child doesn't need the listener
 
-                switch (hash(findTextNo(0).c_str(),basis)) {
+                switch (hash(findTextNo(0).c_str(), basis)) {
                     case hash("GET", basis):
-                        INFO("GET method detected");
-                        this->client_socket.sendFile(findTextNo(1));
+                        INFO("GET method detected: {}", findTextNo(1));
+                        if (!findTextNo(1).compare("/IMU_data.json")) {
+                            std::string r = send_IMU_data();
+                            write(this->client_socket.getFileDescriptor(),
+                                   r.c_str(), r.size() );
+                        } else {
+                            this->client_socket.sendFile(findTextNo(1));
+                        }
+                        this->client_socket.closeFD();
                         break;
-                    case hash("PUT", basis):    //should from arduino, replace one IMU_data.json
-                        INFO("PUT method detected");
+                    case hash("Authentication-RpLE44NHZx7WUwuUJFQY",
+                              basis):    //should from arduino, replace one IMU_data.json
                         //read "PUT" response, and then save it as IMU_schedule.json in the folder './fileForServer'
                         //write data into './fileForServer'
                         //need a key
-                        this->client_socket.writeFile(findTextNo(1));
+                        INFO("Arduino authenticated & run the loop in the child process");
+                        this->arduino_socket.setFileDescriptor(this->client_socket.getFileDescriptor());
+                        this->arduino_socket.loop();
                         break;
                     case hash("PATCH", basis):  //may from arduino
                         INFO("PATCH method detected");
                         break;
                 }
-
-                    this->client_socket.closeFD();
 
                 exit(0);    //kill child process
             }
@@ -161,9 +161,8 @@ namespace gomoku {
         }
 
 
-
-
     }
+
 
 } // Server
 

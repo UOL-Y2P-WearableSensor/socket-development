@@ -11,9 +11,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
+include_directories(src)
+aux_source_directory(src SRC_LIST)
+aux_source_directory(. SRC_LIST)
 
-
-add_executable(WearableSensor_Macos main.cpp src/Server.cpp inc/Server.h src/Logging.cpp inc/Logging.h src/Logging.cpp inc/Logging.h src/Socket.cpp inc/Socket.h)
+add_executable(WearableSensor_Macos ${SRC_LIST} src/IMU_json.cpp src/IMU_json.h src/IMU_json.h)
 
 
 target_link_libraries(WearableSensor_Macos PUBLIC spdlog)
+
+
+

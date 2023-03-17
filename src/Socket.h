@@ -8,9 +8,9 @@
 #include <sys/socket.h>
 #include <sys/fcntl.h>
 #include <netdb.h>
-#include "../inc/Logging.h"
+#include "Logging.h"
 #define FAIL (-1)
-namespace gomoku {
+namespace WearableSensor {
 
     class Socket {
     protected:
@@ -35,9 +35,21 @@ namespace gomoku {
         void readResponse(char *buf, size_t nbyte);
         long getReadBytesQuantity() const;
         void sendFile(std::string file_path);
-        void writeFile(std::string key);
-        long read_bytes_quantity{};
+        long read_bytes_quantity;
 
+    };
+
+    class ArduinoSocket : public ClientSocket{
+    public:
+        void loop();
+        void recvResponse(char*, size_t);
+    private:
+    public:
+        long long int getCurrentTimeIdx() const;
+
+    private:
+        void send_ping_pong();
+        long long current_time_idx;
     };
 
     static void *get_in_addr(struct sockaddr *sa){

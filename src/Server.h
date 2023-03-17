@@ -11,17 +11,18 @@
 #include <iostream>
 #include <netdb.h>
 #include "Logging.h"
-#include "../inc/Socket.h"
-#define BACKLOG 10     // how many pending connections queue will hold
-namespace gomoku {
+#include "Socket.h"
+#define BACKLOG 120    // how many pending connections queue will hold
+namespace WearableSensor {
 
     class Server {
     public:
         explicit Server(const std::string& port);
         void start();
     private:
-        gomoku::RecvSocket recv_socket;
-        gomoku::ClientSocket client_socket;
+        WearableSensor::RecvSocket listening_socket;
+        WearableSensor::ClientSocket client_socket;
+        WearableSensor::ArduinoSocket arduino_socket;
     };
 
 } // Server
